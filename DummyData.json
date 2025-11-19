@@ -1,0 +1,45 @@
+
+[
+  {
+    "item_id": "SW-001",
+    "name": "Granola Bars",
+    "quantity": 8,
+    "location": "Pantry",
+    "expiration_date": "2026-01-12"
+  },
+  {
+    "item_id": "SW-002",
+    "name": "Spaghetti",
+    "quantity": 3,
+    "location": "Pantry",
+    "expiration_date": "2027-03-08"
+  },
+  {
+    "item_id": "SW-004",
+    "name": "Eggs",
+    "quantity": 1,
+    "location": "Fridge",
+    "expiration_date": "2027-11-01"
+  },
+  {
+    "item_id": "SW-005",
+    "name": "Rice",
+    "quantity": 10,
+    "location": "Pantry",
+    "expiration_date": "2029-06-21"
+  },
+  {
+    "item_id": "SW-007",
+    "name": "Milk",
+    "quantity": 1,
+    "location": "Fridge",
+    "expiration_date": "2025-12-09"
+  },
+  {
+    "item_id": "SW-008",
+    "name": "Chicken",
+    "quantity": 1,
+    "location": "Fridge",
+    "expiration_date": "2025-12-15"
+  }
+]
