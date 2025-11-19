@@ -41,5 +41,20 @@
     "quantity": 1,
     "location": "Fridge",
     "expiration_date": "2025-12-15"
-  }
+  },
+  {
+    "item_id": "SW-009",
+    "name": "Bread",
+    "quantity": 1,
+    "location": "Pantry",
+    "expiration_date": "2025-12-14"
+  },
+  {
+  "item_id": "SW-010",
+    "name": "Fruit Snacks",
+    "quantity": 1,
+    "location": "Pantry",
+    "expiration_date": "2025-12-08"
+  },
+  
 ]
