@@ -3,10 +3,10 @@ This is a project for Cloud Computing fall 25.  ShelfWatch is an application whe
 
 
 Services Used: 
-EC2: 
-S3:
-DynamoDB:
-Lambda:
+EC2: Zuriel Anh
+S3:Anh
+DynamoDB:Ram
+Lambda: Zuriel Ram
 Amazon SNS:
-IAM:
-Amazon Cognito:  
+IAM: Mark
+Amazon Cognito: Mark

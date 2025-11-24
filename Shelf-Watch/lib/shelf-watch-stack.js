@@ -24,7 +24,8 @@ class ShelfWatchStack extends Stack {
 //===============================================================================
 // DynamoDB Table
 //============================================================================
-const table = new dynamodb.Table(this, 'PantryItems', {
+const table = new dynamodb.Table(this, 'PantryItems', 
+  {
       partitionKey: { name: 'itemId', type: dynamodb.AttributeType.STRING },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       removalPolicy: RemovalPolicy.DESTROY,
@@ -39,9 +40,11 @@ const table = new dynamodb.Table(this, 'PantryItems', {
     //===============================================================================
     // S3 Bucket (Food Images)
     //============================================================================
-  const bucket = new s3.Bucket(this, 'FoodImages', {
+  const bucket = new s3.Bucket(this, 'FoodImages', 
+    {
       removalPolicy: RemovalPolicy.DESTROY,
       autoDeleteObjects: true,
+      
     });
   }
 }
