@@ -22,7 +22,7 @@ class ShelfWatchStack extends Stack {
   {
     super(scope, id, props);
 //===============================================================================
-// DynamoDB Table
+// DynamoDB Table: Pantry Item
 //============================================================================
 const table = new dynamodb.Table(this, 'PantryItems', 
   {
@@ -46,6 +46,94 @@ const table = new dynamodb.Table(this, 'PantryItems',
       autoDeleteObjects: true,
       
     });
+
+    // ===================================================================
+    // Cognito User Pool (For ShelfWatch logins)
+    // ===================================================================
+    const userPool = new cognito.UserPool(this, 'ShelfWatchUserPool', 
+    {
+      selfSignUpEnabled: true,
+      signInAliases: { email: true },
+      removalPolicy: RemovalPolicy.DESTROY,
+    });
+
+    const userPoolClient = new cognito.UserPoolClient(this, 'ShelfWatchUserPoolClient', 
+    {
+      userPool,
+      generateSecret: false
+    });
+
+    // ===================================================================
+    // SQS Queue 
+    // ===================================================================
+    const queue = new sqs.Queue(this, "ShelfWatchQueue", {
+      queueName: "ShelfWatchQueue",
+      visibilityTimeout: Duration.seconds(30),
+    });
+
+    // ===================================================================
+    // Lambda Function (Main API Handler)
+    // ===================================================================
+    const apiHandler = new lambda.Function(this, "ShelfWatchAPI", 
+      {
+      runtime: lambda.Runtime.NODEJS_18_X,
+      handler: "index.handler",
+      code: lambda.Code.fromAsset("lambda"),
+      environment: {
+        TABLE_NAME: table.tableName,
+        BUCKET_NAME: bucket.bucketName,
+        QUEUE_URL: queue.queueUrl,
+      }
+    });
+
+     // Allow Lambda access
+    table.grantReadWriteData(apiHandler);
+    bucket.grantReadWrite(apiHandler);
+    queue.grantSendMessages(apiHandler);
+
+
+     // ===================================================================
+    // Lambda for Queue Processing (SQS → Lambda)
+    // ===================================================================
+    const processor = new lambda.Function(this, "ShelfWatchQueueProcessor", 
+    {
+      runtime: lambda.Runtime.NODEJS_18_X,
+      handler: "processor.handler",
+      code: lambda.Code.fromAsset("lambda"),
+      environment: 
+    {
+        TABLE_NAME: table.tableName
+      }
+    });
+
+    processor.addEventSource(new lambdaEventSources.SqsEventSource(queue));
+    table.grantReadWriteData(processor);
+
+ // ============================================================
+    // API Gateway for Pantry CRUD
+    // ============================================================
+    const api = new apigw.RestApi(this, 'ShelfWatchAPIEndpoint', 
+    {
+      restApiName: 'ShelfWatch API',
+      description: 'Backend for the ShelfWatch app',
+    });
+
+    const items = api.root.addResource('items');
+    items.addMethod('GET', new apigw.LambdaIntegration(apiHandler));
+    items.addMethod('POST', new apigw.LambdaIntegration(apiHandler));
+
+    const item = items.addResource('{itemId}');
+    item.addMethod('PUT', new apigw.LambdaIntegration(apiHandler));
+    item.addMethod('DELETE', new apigw.LambdaIntegration(apiHandler));
+
+    // ============================================================
+    // Outputs for important resources
+    // ============================================================
+    new CfnOutput(this, 'ApiURL', { value: api.url });
+    new CfnOutput(this, 'BucketName', { value: bucket.bucketName });
+    new CfnOutput(this, 'UserPoolID', { value: userPool.userPoolId });
+    new CfnOutput(this, 'UserPoolClientID', { value: userPoolClient.userPoolClientId });
+    
   }
 }
 
