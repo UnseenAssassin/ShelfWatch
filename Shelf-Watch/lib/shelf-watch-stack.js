@@ -1,14 +1,21 @@
-const { Stack, Duration } = require('aws-cdk-lib/core');
+///const { Stack, Duration } = require('aws-cdk-lib/core');
 // const sqs = require('aws-cdk-lib/aws-sqs');
 
-const { Stack, RemovalPolicy } = require('aws-cdk-lib');
+///const { Stack, RemovalPolicy } = require('aws-cdk-lib');
+////const { Stack, Duration, RemovalPolicy } = require('aws-cdk-lib');
+const { Stack, Duration, RemovalPolicy, CfnOutput } = require('aws-cdk-lib');
 const dynamodb = require('aws-cdk-lib/aws-dynamodb');
 const S3 = require('aws-cdk-lib/aws-s3');
 const ec2 = require('aws-cdk-lib/aws-ec2');
 const iam = require('aws-cdk-lib/aws-iam');
 const lambda = require('aws-cdk-lib/aws-lambda');
-const sns = require('aws-cdk-lib/aws-sns');
+//const sns = require('aws-cdk-lib/aws-sns');
+const sqs = require('aws-cdk-lib/aws-sqs');
 const cognito = require('aws-cdk-lib/aws-cognito');
+
+//
+const lambdaEventSources = require('aws-cdk-lib/aws-lambda-event-sources');
+const apigw = require('aws-cdk-lib/aws-apigateway');
 
 
 class ShelfWatchStack extends Stack {
@@ -40,7 +47,7 @@ const table = new dynamodb.Table(this, 'PantryItems',
     //===============================================================================
     // S3 Bucket (Food Images)
     //============================================================================
-  const bucket = new s3.Bucket(this, 'FoodImages', 
+  const bucket = new S3.Bucket(this, 'FoodImages', 
     {
       removalPolicy: RemovalPolicy.DESTROY,
       autoDeleteObjects: true,
