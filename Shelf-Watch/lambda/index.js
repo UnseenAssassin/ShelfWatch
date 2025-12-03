@@ -32,8 +32,9 @@ exports.handler = async (event) => {
   // GET /items
   if (method === "GET") {
     const data = await db.scan({ TableName: table }).promise();
-    
 
+
+    
 //Last Second Addition: Calculate expiration status
 const today = new Date().toISOString().slice(0, 10);
 
