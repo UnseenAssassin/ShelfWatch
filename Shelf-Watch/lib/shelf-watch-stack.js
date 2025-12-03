@@ -86,6 +86,7 @@ const table = new dynamodb.Table(this, 'PantryItems',
       vpcSubnets: {
         subnetType: ec2.SubnetType.PUBLIC, 
       },
+      associatePublicIpAddress: true,
     });
 
     // Give EC2 permission to read the asset
