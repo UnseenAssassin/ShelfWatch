@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShelfWatch | Upload Item</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header>
+    <nav>
+	<div class="logo">ShelfWatch</div>
+        <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="inventory.html">Inventory</a></li>
+            <li><a href="upload.html" class="active">Upload</a></li>
+            <li><a href="login.html" class="login-btn">Login</a></li>
+        </ul>
+    </nav>
+</header>
+
+<section class="page-header">
+    <h1>Add an Item to Your Pantry</h1>
+    <p>Fill out the details below and upload an image.</p>
+</section>
+
+<section class="upload-container">
+
+    <label>Item Name</label>
+    <input type="text" id="name" placeholder="ex. Granola Bars">
+
+    <label>Location</label>
+    <select id="location">
+        <option value="Pantry Shelf 1">Pantry Shelf 1</option>
+        <option value="Pantry Shelf 2">Pantry Shelf 2</option>
+        <option value="Pantry Cabinet">Pantry Cabinet</option>
+        <option value="Spice Rack">Spice Rack</option>
+    </select>
+
+    <label>Quantity</label>
+    <input type="number" id="quantity" min="1" max="500" value="1">
+
+    <label>Expiration Date</label>
+    <input type="date" id="expiration">
+
+    <label>Item Image</label>
+    <input type="file" id="file-input" accept="image/*">
+
+    <button onclick="uploadItem()">Upload Item</button>
+
+    <p id="status"></p>
+
+</section>
+
+<script>
+async function uploadItem() {
+    const file = document.getElementById("file-input").files[0];
+    const name = document.getElementById("name").value;
+    const location = document.getElementById("location").value;
+    const quantity = document.getElementById("quantity").value;
+    const expirationDate = document.getElementById("expiration").value;
+
+    if (!file || !name || !expirationDate) {
+        alert("Please fill all required fields and choose an image.");
+        return;
+    }
+
+    // STEP 1: Ask backend for a pre-signed URL
+    const API_URL = "YOUR_API_GATEWAY_ENDPOINT/presign"; // Replace this
+
+    const presignRes = await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            filename: file.name,
+            contentType: file.type
+        })
+    });
+
+    const { uploadUrl, s3Key } = await presignRes.json();
+
+    // STEP 2: Upload image directly to S3
+    await fetch(uploadUrl, {
+        method: "PUT",
+        headers: { "Content-Type": file.type },
+        body: file
+    });
+
+    // STEP 3: Save item metadata to DynamoDB through backend API
+    const SAVE_URL = "YOUR_API_GATEWAY_ENDPOINT/items"; // Replace this
+
+    const metadata = {
+        name: name,
+        location: location,
+        quantity: Number(quantity),
+        expirationDate: expirationDate,
+        imageKey: s3Key
+    };
+
+    await fetch(SAVE_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(metadata)
+    });
+
+    document.getElementById("status").innerHTML =
+        `✔ Successfully uploaded <b>${name}</b> to your pantry!`;
+}
+</script>
+
+</body>
+</html>
