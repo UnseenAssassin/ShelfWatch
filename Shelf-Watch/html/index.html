@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShelfWatch</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <!-- Navigation -->
+    <header>
+	<nav>
+            <div class="logo">ShelfWatch</div>
+            <ul>
+                <li><a href="index.html" class="active">Home</a></li>
+                <li><a href="inventory.html">Inventory</a></li>
+                <li><a href="upload.html">Upload</a></li>
+                <li><a href="login.html" class="login-btn">Login</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-text">
+            <h1>Smarter Pantry Management</h1>
+            <p>Track your food items, upload images, monitor expiration dates, and never lose track of your pantry again.</p>
+            <a href="inventory.html" class="cta-btn">View Inventory</a>
+        </div>
+	<img src="https://cdn-icons-png.flaticon.com/512/3081/3081648.png" alt="Pantry Icon" class="hero-img">
+    </section>
+
+    <!-- Features -->
+    <section class="features">
+        <h2>Features</h2>
+        <div class="feature-grid">
+
+            <div class="feature">
+                <h3>📦 View Inventory</h3>
+                <p>Browse all pantry items stored in DynamoDB.</p>
+            </div>
+
+            <div class="feature">
+                <h3>📤 Upload Images</h3>
+                <p>Upload food images directly to your S3 bucket.</p>
+            </div>
+
+            <div class="feature">
+                <h3>🔐 Cognito Login</h3>
+                <p>Secure authentication using AWS Cognito.</p>
+            </div>
+
+        </div>
+    </section>
+
+</body>
+</html>
