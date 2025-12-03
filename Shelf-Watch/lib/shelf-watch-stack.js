@@ -44,6 +44,53 @@ const table = new dynamodb.Table(this, 'PantryItems',
         }
       ]
     });
+
+    const vpc = new ec2.Vpc(this, 'ShelfWatchVPC', { maxAzs: 1 });
+
+    const securityGroup = new ec2.SecurityGroup(this, 'ShelfWatchSG', {
+      vpc,
+      description: 'Allow HTTP, HTTPS, and SSH',
+      allowAllOutbound: true,
+    });
+
+    // SSH
+    securityGroup.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(22), 'Allow SSH');
+    // HTTP
+    securityGroup.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(80), 'Allow HTTP');
+    // HTTPS
+    securityGroup.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(443), 'Allow HTTPS');
+  
+    const websiteAsset = new assets.Asset(this, 'WebsiteAsset', {
+      path: 'html', // folder with all HTML/CSS/JS
+    });
+
+    const userData = ec2.UserData.forLinux();
+    
+    userData.addCommands(
+        'yum update -y',
+        'yum install -y httpd unzip',
+        'systemctl enable httpd',
+        'systemctl start httpd',
+        `aws s3 cp ${websiteAsset.s3ObjectUrl} /tmp/website.zip`,
+        'unzip /tmp/website.zip -d /var/www/html',
+        'chmod -R 755 /var/www/html'
+  );
+
+    const ec2Instance = new ec2.Instance(this, 'ShelfWatchEC2', {
+      vpc,
+      instanceType: ec2.InstanceType.of(ec2.InstanceClass.T3, ec2.InstanceSize.MICRO),
+      machineImage: ec2.MachineImage.latestAmazonLinux2023(),
+      securityGroup,
+      keyName: 'ShelfWatch', 
+      userData: userData,
+      vpcSubnets: {
+        subnetType: ec2.SubnetType.PUBLIC, 
+      },
+    });
+
+    // Give EC2 permission to read the asset
+    websiteAsset.grantRead(ec2Instance.role);
+
     //===============================================================================
     // S3 Bucket (Food Images)
     //============================================================================
@@ -57,18 +104,6 @@ const table = new dynamodb.Table(this, 'PantryItems',
     // ===================================================================
     // Cognito User Pool (For ShelfWatch logins)
     // ===================================================================
-    const userPool = new cognito.UserPool(this, 'ShelfWatchUserPool', 
-    {
-      selfSignUpEnabled: true,
-      signInAliases: { email: true },
-      removalPolicy: RemovalPolicy.DESTROY,
-    });
-
-    const userPoolClient = new cognito.UserPoolClient(this, 'ShelfWatchUserPoolClient', 
-    {
-      userPool,
-      generateSecret: false
-    });
 
     // ===================================================================
     // SQS Queue 
@@ -138,8 +173,7 @@ const table = new dynamodb.Table(this, 'PantryItems',
     // ============================================================
     new CfnOutput(this, 'ApiURL', { value: api.url });
     new CfnOutput(this, 'BucketName', { value: bucket.bucketName });
-    new CfnOutput(this, 'UserPoolID', { value: userPool.userPoolId });
-    new CfnOutput(this, 'UserPoolClientID', { value: userPoolClient.userPoolClientId });
+    
     
   }
 }
