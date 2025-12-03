@@ -64,7 +64,7 @@ async function uploadItem() {
     }
 
     // STEP 1: Ask backend for a pre-signed URL
-    const API_URL = "YOUR_API_GATEWAY_ENDPOINT/presign"; // Replace this
+    const API_URL = "https://hldjqgkt5e.execute-api.us-east-1.amazonaws.com/prod/presign"; // Replace this
 
     const presignRes = await fetch(API_URL, {
         method: "POST",
@@ -85,7 +85,7 @@ async function uploadItem() {
     });
 
     // STEP 3: Save item metadata to DynamoDB through backend API
-    const SAVE_URL = "YOUR_API_GATEWAY_ENDPOINT/items"; // Replace this
+    const SAVE_URL = "https://hldjqgkt5e.execute-api.us-east-1.amazonaws.com/prod/items"; 
 
     const metadata = {
         name: name,
