@@ -32,38 +32,6 @@ exports.handler = async (event) => {
   // GET /items
   if (method === "GET") {
     const data = await db.scan({ TableName: table }).promise();
-
-
-    
-//Last Second Addition: Calculate expiration status
-const today = new Date().toISOString().slice(0, 10);
-
-    const items = data.Items.map(item => {
-      let daysLeft = null;
-      let isExpired = false;
-      let expiringSoon = false;
-
-      if (item.expirationDate) {
-        const diffDays = Math.ceil(
-          (new Date(item.expirationDate) - new Date(today)) /
-          (1000 * 60 * 60 * 24)
-        );
-
-        daysLeft = diffDays;
-        isExpired = diffDays < 0;
-        expiringSoon = diffDays >= 0 && diffDays <= 2;
-      }
-
-      return {
-        ...item,
-        daysLeft,        
-        isExpired,       
-        expiringSoon     
-      };
-    });
-//Last Second Addition End
-
-
     return { 
       statusCode: 200,
       headers: { "Access-Control-Allow-Origin": "*" },

@@ -192,29 +192,7 @@ const table = new dynamodb.Table(this, 'PantryItems',
     ec2Instance.userData.addCommands(
       `echo 'const CONFIG = { API_URL: "${api.url}" };' > /var/www/html/config.js`
     );
-
-    
-    // Last second addition for expiration checker
-  const expirationChecker = new lambda.Function(this, "ExpirationChecker", 
-    {
-  runtime: lambda.Runtime.NODEJS_18_X,
-  handler: "expirationChecker.handler",
-  code: lambda.Code.fromAsset("lambda"),
-  environment: {
-    TABLE_NAME: table.tableName
-  }
-});
-
-table.grantReadWriteData(expirationChecker);
-
-// Run once per day at midnight to check items
-new events.Rule(this, "DailyExpirationRule", 
-  {
-  schedule: events.Schedule.cron({ minute: "0", hour: "0" }),
-  targets: [new targets.LambdaFunction(expirationChecker)]
-});
-
-
+  
     // ============================================================
     // Outputs for important resources
     // ============================================================
