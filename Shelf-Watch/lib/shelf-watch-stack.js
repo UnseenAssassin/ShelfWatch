@@ -11,7 +11,7 @@ const iam = require('aws-cdk-lib/aws-iam');
 const lambda = require('aws-cdk-lib/aws-lambda');
 //const sns = require('aws-cdk-lib/aws-sns');
 const sqs = require('aws-cdk-lib/aws-sqs');
-const cognito = require('aws-cdk-lib/aws-cognito');
+const assets = require('aws-cdk-lib/aws-s3-assets');
 
 //
 const lambdaEventSources = require('aws-cdk-lib/aws-lambda-event-sources');
