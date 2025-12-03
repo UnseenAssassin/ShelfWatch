@@ -1,8 +1,3 @@
-///const { Stack, Duration } = require('aws-cdk-lib/core');
-// const sqs = require('aws-cdk-lib/aws-sqs');
-
-///const { Stack, RemovalPolicy } = require('aws-cdk-lib');
-////const { Stack, Duration, RemovalPolicy } = require('aws-cdk-lib');
 const { Stack, Duration, RemovalPolicy, CfnOutput } = require('aws-cdk-lib');
 const dynamodb = require('aws-cdk-lib/aws-dynamodb');
 const S3 = require('aws-cdk-lib/aws-s3');
@@ -12,8 +7,6 @@ const lambda = require('aws-cdk-lib/aws-lambda');
 //const sns = require('aws-cdk-lib/aws-sns');
 const sqs = require('aws-cdk-lib/aws-sqs');
 const assets = require('aws-cdk-lib/aws-s3-assets');
-
-//
 const lambdaEventSources = require('aws-cdk-lib/aws-lambda-event-sources');
 const apigw = require('aws-cdk-lib/aws-apigateway');
 
@@ -87,6 +80,7 @@ const table = new dynamodb.Table(this, 'PantryItems',
         subnetType: ec2.SubnetType.PUBLIC, 
       },
       associatePublicIpAddress: true,
+      userDataCausesReplacement: true, // useful if userData changes
     });
 
     // Give EC2 permission to read the asset
@@ -99,7 +93,17 @@ const table = new dynamodb.Table(this, 'PantryItems',
     {
       removalPolicy: RemovalPolicy.DESTROY,
       autoDeleteObjects: true,
-      
+      cors: [
+        {
+            allowedMethods: [
+                S3.HttpMethods.GET,
+                S3.HttpMethods.PUT,
+                S3.HttpMethods.POST,
+            ],
+            allowedOrigins: ['*'],
+            allowedHeaders: ['*'],
+        },
+      ],
     });
 
     // ===================================================================
@@ -159,7 +163,16 @@ const table = new dynamodb.Table(this, 'PantryItems',
     {
       restApiName: 'ShelfWatch API',
       description: 'Backend for the ShelfWatch app',
+      defaultCorsPreflightOptions: {
+        allowOrigins: apigw.Cors.ALL_ORIGINS,
+        allowMethods: apigw.Cors.ALL_METHODS,
+        allowHeaders: ['Content-Type'],
+      },
     });
+
+    // Add presign endpoint
+    const presign = api.root.addResource('presign');
+    presign.addMethod('POST', new apigw.LambdaIntegration(apiHandler));
 
     const items = api.root.addResource('items');
     items.addMethod('GET', new apigw.LambdaIntegration(apiHandler));
@@ -168,6 +181,13 @@ const table = new dynamodb.Table(this, 'PantryItems',
     const item = items.addResource('{itemId}');
     item.addMethod('PUT', new apigw.LambdaIntegration(apiHandler));
     item.addMethod('DELETE', new apigw.LambdaIntegration(apiHandler));
+
+
+    // API URL injection
+    ec2Instance.userData.addCommands(
+      `echo 'const CONFIG = { API_URL: "${api.url}" };' > /var/www/html/config.js`
+    );
+
 
     // ============================================================
     // Outputs for important resources

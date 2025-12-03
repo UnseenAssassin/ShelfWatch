@@ -50,6 +50,7 @@
 
 </section>
 
+<script src="config.js"></script>
 <script>
 async function uploadItem() {
     const file = document.getElementById("file-input").files[0];
@@ -63,46 +64,64 @@ async function uploadItem() {
         return;
     }
 
-    // STEP 1: Ask backend for a pre-signed URL
-    const API_URL = "https://hldjqgkt5e.execute-api.us-east-1.amazonaws.com/prod/presign"; // Replace this
+    try {
+        document.getElementById("status").innerHTML = "Upload in progress";
+        // STEP 1: Ask backend for a pre-signed URL
+        //const API_URL = "https://0mohtjonpa.execute-api.us-east-1.amazonaws.com/prod/presign"; // Replace this
 
-    const presignRes = await fetch(API_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            filename: file.name,
-            contentType: file.type
-        })
-    });
+        const presignResult = await fetch(`${CONFIG.API_URL}presign`, { //API_URL,
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                filename: file.name,
+                contentType: file.type
+            })
+        });
 
-    const { uploadUrl, s3Key } = await presignRes.json();
+        if (!presignResult.ok) {
+            throw new Error(`Presign failed: ${presignResult.status}`);
+        }
 
-    // STEP 2: Upload image directly to S3
-    await fetch(uploadUrl, {
-        method: "PUT",
-        headers: { "Content-Type": file.type },
-        body: file
-    });
+        const { uploadUrl, s3Key } = await presignResult.json();
 
-    // STEP 3: Save item metadata to DynamoDB through backend API
-    const SAVE_URL = "https://hldjqgkt5e.execute-api.us-east-1.amazonaws.com/prod/items"; 
+        // STEP 2: Upload image directly to S3
+        const s3Result = await fetch(uploadUrl, {
+            method: "PUT",
+            headers: { "Content-Type": file.type },
+            body: file
+        });
 
-    const metadata = {
-        name: name,
-        location: location,
-        quantity: Number(quantity),
-        expirationDate: expirationDate,
-        imageKey: s3Key
-    };
+        if (!s3Result.ok) {
+            throw new Error(`S3 upload failed: ${s3Result.status}`);
+        }
 
-    await fetch(SAVE_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(metadata)
-    });
+        // STEP 3: Save item metadata to DynamoDB through backend API
+        //const SAVE_URL = "https://0mohtjonpa.execute-api.us-east-1.amazonaws.com/prod/items"; 
 
-    document.getElementById("status").innerHTML =
-        `✔ Successfully uploaded <b>${name}</b> to your pantry!`;
+        const metadata = {
+            name: name,
+            location: location,
+            quantity: Number(quantity),
+            expirationDate: expirationDate,
+            imageKey: s3Key
+        };
+
+        const saveResult = await fetch(`${CONFIG.API_URL}items`, { //SAVE_URL,
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(metadata)
+        });
+
+        if (!saveResult.ok) {
+            throw new Error(`Save failed: ${saveResult.status}`);
+        }
+
+        document.getElementById("status").innerHTML =
+            `✔ Successfully uploaded <b>${name}</b> to your pantry!`;
+    } catch (error) {
+        console.error("Upload error:", error);
+        document.getElementById("status").innerHTML = `Error: ${error.message}`;
+    }
 }
 </script>
 
