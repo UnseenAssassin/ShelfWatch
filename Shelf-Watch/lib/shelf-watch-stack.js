@@ -96,6 +96,13 @@ const table = new dynamodb.Table(this, 'PantryItems',
     //============================================================================
   const bucket = new S3.Bucket(this, 'FoodImages', 
     {
+      publicReadAccess: true,
+      blockPublicAccess: new S3.BlockPublicAccess({
+        blockPublicAcls: false,
+        blockPublicPolicy: false,
+        ignorePublicAcls: false,
+        restrictPublicBuckets: false
+      }),
       removalPolicy: RemovalPolicy.DESTROY,
       autoDeleteObjects: true,
       cors: [
@@ -190,7 +197,7 @@ const table = new dynamodb.Table(this, 'PantryItems',
 
     // API URL injection
     ec2Instance.userData.addCommands(
-      `echo 'const CONFIG = { API_URL: "${api.url}" };' > /var/www/html/config.js`
+      `echo 'const CONFIG = { API_URL: "${api.url}", S3_BUCKET: "${bucket.bucketName}" };' > /var/www/html/config.js`
     );
   
     // ============================================================
