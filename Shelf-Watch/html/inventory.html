@@ -32,12 +32,14 @@
 <div id="items-container" style="display:flex; flex-wrap:wrap; gap:20px;"></div>
 
 
+<script src="config.js"></script>
 
     <script>
 	// When connected to API Gateway, update URL here
-        const API_URL = "https://hldjqgkt5e.execute-api.us-east-1.amazonaws.com/prod/items";
 
         async function loadItems() {
+			const API_URL = CONFIG.API_URL;
+            const S3_BUCKET = CONFIG.S3_BUCKET;
             const res = await fetch(API_URL);
             const items = await res.json();
 
@@ -45,6 +47,7 @@
             container.innerHTML = "";
 
             items.forEach(item => {
+				onst imageUrl = `https://${S3_BUCKET}.s3.amazonaws.com/${item.imageKey}`;
                 const div = document.createElement("div");
                 div.className = "item-card";
                 div.innerHTML = `
@@ -52,6 +55,7 @@
                     <p><strong>Quantity:</strong> ${item.quantity}</p>
                     <p><strong>Location:</strong> ${item.location}</p>
                     <p><strong>Expires:</strong> ${item.expirationDate}</p>
+					<img src="${imageUrl}" alt="${item.name}" class="item-image"/>
                 `;
                 container.appendChild(div);
             });
