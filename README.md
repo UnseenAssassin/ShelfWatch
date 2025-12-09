@@ -68,6 +68,8 @@ o    Inventory Display: Items appear as structured, visual cards with their imag
 
 o    Scalable Architecture: DynamoDB and Lambda ensure performance without needing manual server management.
 
+o    Security: Security group and VPC is implemented for use with our EC2 instance.
+
 project-root/
 │
 ├── lib/ 
